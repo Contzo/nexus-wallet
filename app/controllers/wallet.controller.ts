@@ -30,11 +30,24 @@ export async function submitMint(
     if (!newAddress) throw new Error("Failed to deploy SCW.");
   }
 
-  const userOp = await generateMintUserOperation(TokenAddress, scwAddress, amount, Paymaster);
-  if (!userOp) throw new Error("Failed to generate UserOp.");
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const feeMultiplierPct = attempt === 0 ? 100n : FEE_BUMP_PCT;
+    const userOp = await generateMintUserOperation(TokenAddress, scwAddress, amount, Paymaster, feeMultiplierPct);
+    if (!userOp) throw new Error("Failed to generate UserOp.");
 
-  const userOpHash = await sendUserOperation(userOp);
-  return { userOpHash };
+    try {
+      const userOpHash = await sendUserOperation(userOp);
+      return { userOpHash };
+    } catch (e) {
+      lastError = e;
+      if (attempt < 2 && String(e).toLowerCase().includes("replacement underpriced")) {
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastError;
 }
 
 export async function submitTransfer(
