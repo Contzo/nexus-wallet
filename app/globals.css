@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Nexus Wallet — design tokens (Tailwind v4, CSS-first @theme)
+   Generates utilities like bg-base, text-ink, border-line,
+   font-serif, etc. No tailwind.config.js required.
+   ============================================================ */
+@theme {
+  /* surfaces — deep near-black, institutional fintech */
+  --color-base: #08090b;
+  --color-sunken: #0b0d10;
+  --color-surface: #121419;
+  --color-raised: #171a20;
+  --color-faint: #1a1d23;
+  --color-line: #23262e;
+
+  /* text */
+  --color-ink: #f4f6f8;
+  --color-muted: #9aa0ab;
+  --color-dim: #646a76;
+
+  /* single restrained accent */
+  --color-accent: #86d9c6;
+  --color-accentdim: #3f7d72;
+}
+
+/* base ------------------------------------------------------- */
+html,
+body {
+  background: var(--color-base);
+  color: var(--color-ink);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(134, 217, 198, 0.22);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #20242c;
+  border-radius: 99px;
+  border: 3px solid var(--color-base);
+}
+
+/* helpers ---------------------------------------------------- */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+@keyframes spin360 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin360 0.7s linear infinite;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
