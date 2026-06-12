@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { mintTokens } from "../../../controllers/wallet.controller";
+import { submitMint } from "../../../controllers/wallet.controller";
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await mintTokens(session.user.subId as string, BigInt(amount));
+    const result = await submitMint(session.user.subId as string, BigInt(amount));
     return NextResponse.json(result);
   } catch (e) {
     console.error("[POST /api/wallet/mint] Error:", e);

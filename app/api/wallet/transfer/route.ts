@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { isAddress } from "viem";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { transferTokens } from "../../../controllers/wallet.controller";
+import { submitTransfer } from "../../../controllers/wallet.controller";
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await transferTokens(
+    const result = await submitTransfer(
       session.user.subId as string,
       session.user.scwAddress as string,
       receiver,

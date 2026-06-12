@@ -7,7 +7,8 @@ import { env } from "./env";
 import { walletClient } from "./viemClient";
 import { type PackedUserOperation } from "./generatePackedUserOperation";
 
-export const bundlerClient = createBundlerClient({
+// Keep the viem bundler client available for type-safe receipt polling.
+const bundlerClient = createBundlerClient({
   chain: sepolia,
   transport: http(env("rpcUrl")),
 });
@@ -150,16 +151,19 @@ export async function sendUserOperation(
   return bundlerRpc("eth_sendUserOperation", [serializeUserOp(userOp), entryPointAddress]) as Promise<`0x${string}`>;
 }
 
-/// Polls the bundler until the UserOperation is included in a block.
-export async function waitForUserOperation(
+/// Checks whether a UserOperation has been included in a block.
+/// Returns null if still pending so callers can poll without blocking.
+export async function getUserOperationReceipt(
   userOpHash: `0x${string}`,
-): Promise<{ txHash: `0x${string}`; success: boolean }> {
-  const receipt = await bundlerClient.waitForUserOperationReceipt({
-    hash: userOpHash,
-    timeout: 300_000, // 5 min — Sepolia can be slow under load
-  });
-  return {
-    txHash: receipt.receipt.transactionHash,
-    success: receipt.success,
-  };
+): Promise<{ txHash: `0x${string}`; success: boolean } | null> {
+  try {
+    const receipt = await bundlerClient.getUserOperationReceipt({ hash: userOpHash });
+    if (!receipt) return null;
+    return {
+      txHash: receipt.receipt.transactionHash,
+      success: receipt.success,
+    };
+  } catch {
+    return null;
+  }
 }

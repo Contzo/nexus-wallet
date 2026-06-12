@@ -87,6 +87,7 @@ export async function generateSignedUserOperation(
   callData: `0x${string}`,
   paymasterAndData: `0x${string}`,
   initCode: `0x${string}` = `0x`,
+  feeMultiplierPct: bigint = 100n,
 ): Promise<PackedUserOperation | null> {
   try {
     const nonce = await entryContract.getNonce(sender);
@@ -120,7 +121,10 @@ export async function generateSignedUserOperation(
     const paymasterVerificationGasLimit = gas.paymasterVerificationGasLimit / BigInt(3);
     draftUserOp.accountGasLimits = packGas(verificationGasLimit, gas.callGasLimit);
     draftUserOp.preVerificationGas = gas.preVerificationGas;
-    draftUserOp.gasFees = packGas(gas.maxPriorityFeePerGas, gas.maxFeePerGas);
+    // Apply fee multiplier — used on retries to bump above a pending UserOp in the mempool.
+    const maxPriorityFeePerGas = (gas.maxPriorityFeePerGas * feeMultiplierPct) / 100n;
+    const maxFeePerGas = (gas.maxFeePerGas * feeMultiplierPct) / 100n;
+    draftUserOp.gasFees = packGas(maxPriorityFeePerGas, maxFeePerGas);
     if (draftUserOp.paymasterAndData !== "0x") {
       const pmHex = (draftUserOp.paymasterAndData as string).slice(2);
       const paymaster = `0x${pmHex.slice(0, 40)}` as Address;
@@ -147,6 +151,7 @@ export async function generateMintUserOperation(
   scwAddress: Address,
   amount: bigint,
   paymaster: Address,
+  feeMultiplierPct: bigint = 100n,
 ): Promise<PackedUserOperation | null> {
   try {
     const mintCallData = encodeFunctionData({
@@ -163,6 +168,8 @@ export async function generateMintUserOperation(
       scwAddress,
       executeCallData,
       paymaster,
+      `0x`,
+      feeMultiplierPct,
     );
   } catch (e) {
     console.error("[generateMintUserOperation] Error:", e);
@@ -175,6 +182,7 @@ export async function generateTransferUserOperation(
   recipient: Address,
   amount: bigint,
   paymaster: Address,
+  feeMultiplierPct: bigint = 100n,
 ): Promise<PackedUserOperation | null> {
   try {
     const transferCallData = encodeFunctionData({
@@ -191,6 +199,8 @@ export async function generateTransferUserOperation(
       senderScwAddress,
       executeCallData,
       paymaster,
+      `0x`,
+      feeMultiplierPct,
     );
   } catch (e) {
     console.error("[generateTransferUserOperation] Error:", e);
